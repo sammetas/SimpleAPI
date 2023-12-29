@@ -2,6 +2,8 @@ package com.application.api.SimpleAPI.controller;
 
 import com.application.api.SimpleAPI.model.Game;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,15 +14,34 @@ import java.util.Objects;
 @Slf4j
 public class SimpleAPIController {
 
+    @Autowired
+    Environment environment;
+
     @GetMapping("/ping")
-    public ResponseEntity<String> getBeat(){
+    public ResponseEntity<String> getHeartBeat() {
+        long latency = Long.parseLong(Objects.requireNonNull(environment.getProperty("round.latency")));
+        if (latency != 0L) {
+            try {
+                Thread.sleep(latency); //Added sleep logic to simulate the latency /slow response
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }
         return ResponseEntity.ok("Pong!");
     }
 
     @PostMapping("/game")
     public ResponseEntity<Game> saveGameDetails(@RequestBody Game game) {
+        long latency = Long.parseLong(Objects.requireNonNull(environment.getProperty("round.latency")));
         if (isValid(game)) {
-            log.info("Game Object Saved");
+            if (latency != 0L) {
+                try {
+                    Thread.sleep(latency); //Added sleep logic to simulate the latency /slow response
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            log.info("Game Object Saved using port:" + environment.getProperty("local.server.port"));
             return ResponseEntity.ok(game);
         }
 
